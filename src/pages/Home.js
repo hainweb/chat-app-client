@@ -40,7 +40,7 @@ const Home = () => {
 
   /***socket connection */
   useEffect(()=>{
-    const socketConnection = io('wss://chat-app-server-hn8e.onrender.com',{
+    const socketConnection = io(process.env.FRONTEND_URL,{
       auth : {
         token : localStorage.getItem('token')
       },
