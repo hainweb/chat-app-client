@@ -23,13 +23,13 @@ const CheckPasswordPage = () => {
   const handleOnChange = (e) => { 
     const { name, value } = e.target; 
     setData((prev) => ({ ...prev, [name]: value })); 
-  }; 
+  } 
  
   const handleSubmit = async (e) => { 
     e.preventDefault(); 
     e.stopPropagation(); 
  
-    const URL = '${process.env.REACT_APP_BACKEND_URL}/api/password' 
+    const URL = ${process.env.REACT_APP_BACKEND_URL}/api/password; 
  
     try { 
       const response = await axios.post(URL, { 
@@ -37,26 +37,21 @@ const CheckPasswordPage = () => {
         password: data.password 
       }, { withCredentials: true }); 
  
+      console.log("Login response:", response.data); // Add this log
+
       toast.success(response.data.message); 
  
       if (response.data.success) { 
-        console.log('Login successful, response:', response.data);
-        
-        // Set token in Redux store and localStorage
         dispatch(setToken(response?.data?.token)); 
         localStorage.setItem('token', response?.data?.token); 
-        
-        // Clear the form data
         setData({ password: "", userId: "" }); 
-        
-        // Navigate to the home page
-        navigate('/home'); 
+        navigate('/'); 
       } 
     } catch (error) { 
+      console.log("Login error:", error?.response?.data?.message); // Add this log
       toast.error(error?.response?.data?.message); 
-      console.error('Login error:', error?.response?.data);
     } 
-  }; 
+  } 
  
   return ( 
     <div className='mt-5'> 
@@ -86,7 +81,7 @@ const CheckPasswordPage = () => {
         <p className='my-3 text-center'><Link to={"/forgot-password"} className='hover:text-primary font-semibold'>Forgot password ?</Link></p> 
       </div> 
     </div> 
-  ); 
-}; 
+  ) 
+} 
  
 export default CheckPasswordPage;
