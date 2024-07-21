@@ -1,92 +1,96 @@
-import React, { useEffect, useState } from 'react'; 
-import { Link, useLocation, useNavigate } from 'react-router-dom'; 
 import axios from 'axios'; 
-import toast from 'react-hot-toast'; 
-import Avatar from '../components/Avatar'; 
-import { useDispatch } from 'react-redux'; 
-import { setToken, setUser } from '../redux/userSlice'; 
+import React, { useEffect } from 'react'; 
+import { useDispatch, useSelector } from 'react-redux'; 
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'; 
+import { logout, setOnlineUser, setSocketConnection, setUser } from '../redux/userSlice'; 
+import Sidebar from '../components/Sidebar'; 
+import logo from '../assets/logo.png'; 
+import io from 'socket.io-client'; 
  
-const CheckPasswordPage = () => { 
-  const [data, setData] = useState({ password: "", userId: "" }); 
+const Home = () => { 
+  const user = useSelector(state => state.user); 
+  const dispatch = useDispatch(); 
   const navigate = useNavigate(); 
   const location = useLocation(); 
-  const dispatch = useDispatch(); 
+ 
+  console.log('user', user); 
+ 
+  const fetchUserDetails = async () => { 
+    try { 
+      const token = localStorage.getItem('token'); 
+      if (!token) {
+        console.log('No token found, redirecting to login');
+        navigate('/email');
+        return;
+      }
+
+      const URL = '${process.env.REACT_APP_BACKEND_URL}/api/user-details' 
+      const response = await axios.get(URL, { withCredentials: true }); 
+ 
+      dispatch(setUser(response.data.data)); 
+ 
+      if (response.data.data.logout) { 
+        dispatch(logout()); 
+        navigate("/email"); 
+      } 
+      console.log("current user Details", response); 
+    } catch (error) { 
+      console.log("error", error); 
+      navigate("/email"); // Redirect to login if there's an error
+    } 
+  }; 
  
   useEffect(() => { 
-    if (!location?.state?.name) { 
-      navigate('/email'); 
-    } else { 
-      setData((prev) => ({ ...prev, userId: location?.state?._id })); 
-    } 
-  }, [location, navigate]); 
+    fetchUserDetails(); 
+  }, []); 
  
-  const handleOnChange = (e) => { 
-    const { name, value } = e.target; 
-    setData((prev) => ({ ...prev, [name]: value })); 
-  }; 
+  /***socket connection */ 
+  useEffect(() => { 
+    const socketConnection = io('wss://chat-app-server-hn8e.onrender.com', { 
+      auth: { 
+        token: localStorage.getItem('token') 
+      }, 
+      transports: ['websocket', 'polling'], 
+      withCredentials: true 
+    }); 
  
-  const handleSubmit = async (e) => { 
-    e.preventDefault(); 
-    e.stopPropagation(); 
+    socketConnection.on('onlineUser', (data) => { 
+      console.log(data); 
+      dispatch(setOnlineUser(data)); 
+    }); 
  
-    const URL = ${process.env.REACT_APP_BACKEND_URL}/api/password; 
+    dispatch(setSocketConnection(socketConnection)); 
  
-    try { 
-      const response = await axios.post(URL, { 
-        userId: data.userId, 
-        password: data.password 
-      }, { withCredentials: true }); 
+    return () => { 
+      socketConnection.disconnect(); 
+    }; 
+  }, [dispatch]); 
  
-      toast.success(response.data.message); 
- 
-      if (response.data.success) { 
-        console.log('Login successful, response:', response.data);
-        
-        // Set token in Redux store and localStorage
-        dispatch(setToken(response?.data?.token)); 
-        localStorage.setItem('token', response?.data?.token); 
-        
-        // Clear the form data
-        setData({ password: "", userId: "" }); 
-        
-        // Navigate to the home page
-        navigate('/home'); 
-      } 
-    } catch (error) { 
-      toast.error(error?.response?.data?.message); 
-      console.error('Login error:', error?.response?.data);
-    } 
-  }; 
- 
+  const basePath = location.pathname === '/'; 
   return ( 
-    <div className='mt-5'> 
-      <div className='bg-white w-full max-w-md rounded overflow-hidden p-4 mx-auto'> 
-        <div className='w-fit mx-auto mb-2 flex justify-center items-center flex-col'> 
-          <Avatar width={70} height={70} name={location?.state?.name} imageUrl={location?.state?.profile_pic} /> 
-          <h2 className='font-semibold text-lg mt-1'>{location?.state?.name}</h2> 
-        </div> 
-        <form className='grid gap-4 mt-3' onSubmit={handleSubmit}> 
-          <div className='flex flex-col gap-1'> 
-            <label htmlFor='password'>Password :</label> 
-            <input 
-              type='password' 
-              id='password' 
-              name='password' 
-              placeholder='enter your password' 
-              className='bg-slate-100 px-2 py-1 focus:outline-primary' 
-              value={data.password} 
-              onChange={handleOnChange} 
-              required 
-            /> 
-          </div> 
-          <button className='bg-primary text-lg px-4 py-1 hover:bg-secondary rounded mt-2 font-bold text-white leading-relaxed tracking-wide'> 
-            Login 
-          </button> 
-        </form> 
-        <p className='my-3 text-center'><Link to={"/forgot-password"} className='hover:text-primary font-semibold'>Forgot password ?</Link></p> 
-      </div> 
-    </div> 
+   <div className='grid lg:grid-cols-[300px,1fr] h-screen max-h-screen'>
+        <section className={`bg-white ${!basePath && "hidden"} lg:block`}>
+           <Sidebar/>
+        </section>
+
+        {/**message component**/}
+        <section className={`${basePath && "hidden"}`} >
+            <Outlet/>
+        </section>
+
+
+        <div className={`justify-center items-center flex-col gap-2 hidden ${!basePath ? "hidden" : "lg:flex" }`}>
+            <div>
+              <img
+                src={logo}
+                width={250}
+                alt='logo'
+              />
+            </div>
+            <p className='text-lg mt-2 text-slate-500'>Select user to send message</p>
+        </div>
+    </div>
   ); 
 }; 
  
-export default CheckPasswordPage;
+export default Home;
