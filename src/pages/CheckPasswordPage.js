@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { IoClose } from "react-icons/io5";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import axios from '../axiosSetup'; // Updated import
+import axios from '../utils/axiosSetup'; // Updated import 
 import toast from 'react-hot-toast';
 import { PiUserCircle } from "react-icons/pi";
 import Avatar from '../components/Avatar';
