@@ -54,7 +54,7 @@ const Home = () => {
     dispatch(setSocketConnection(socketConnection));
 
     return () => {
-      socketConnection.disconnect();
+     WebSocket();
     }
   }, [dispatch]);
 
