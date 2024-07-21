@@ -37,7 +37,7 @@ const Home = () => {
   }, []);
 
   /***socket connection */
-  new WebSocket('wss://chat-app-server-hn8e.onrender.com')
+  new WebSocket('https://chat-app-server-hn8e.onrender.com')
   useEffect(() => {
     const socketConnection = io( 'wss://chat-app-server-hn8e.onrender.com', {
       auth: {
