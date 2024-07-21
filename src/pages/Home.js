@@ -37,6 +37,7 @@ const Home = () => {
   }, []);
 
   /***socket connection */
+  new WebSocket('wss://chat-app-server-hn8e.onrender.com')
   useEffect(() => {
     const socketConnection = io( 'wss://chat-app-server-hn8e.onrender.com', {
       auth: {
@@ -54,7 +55,7 @@ const Home = () => {
     dispatch(setSocketConnection(socketConnection));
 
     return () => {
- WebSocket.close()
+  <p className='text-lg mt-2 text-slate-500'>Select user to send message</p>
     }
   }, [dispatch]);
 
