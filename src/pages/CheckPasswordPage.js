@@ -5,13 +5,13 @@ import toast from 'react-hot-toast';
 import Avatar from '../components/Avatar'; 
 import { useDispatch } from 'react-redux'; 
 import { setToken, setUser } from '../redux/userSlice'; 
- 
+
 const CheckPasswordPage = () => { 
   const [data, setData] = useState({ password: "", userId: "" }); 
   const navigate = useNavigate(); 
   const location = useLocation(); 
   const dispatch = useDispatch(); 
- 
+
   useEffect(() => { 
     if (!location?.state?.name) { 
       navigate('/email'); 
@@ -19,40 +19,41 @@ const CheckPasswordPage = () => {
       setData((prev) => ({ ...prev, userId: location?.state?._id })); 
     } 
   }, [location, navigate]); 
- 
+
   const handleOnChange = (e) => { 
     const { name, value } = e.target; 
     setData((prev) => ({ ...prev, [name]: value })); 
   } 
- 
+
   const handleSubmit = async (e) => { 
     e.preventDefault(); 
     e.stopPropagation(); 
- 
+
     const URL = '${process.env.REACT_APP_BACKEND_URL}/api/password'; 
- 
+
     try { 
       const response = await axios.post(URL, { 
         userId: data.userId, 
         password: data.password 
       }, { withCredentials: true }); 
- 
+
       console.log("Login response:", response.data); // Add this log
 
-      toast.success(response.data.message); 
- 
       if (response.data.success) { 
-        dispatch(setToken(response?.data?.token)); 
-        localStorage.setItem('token', response?.data?.token); 
+        toast.success(response.data.message); 
+        dispatch(setToken(response.data.token)); 
+        localStorage.setItem('token', response.data.token); 
         setData({ password: "", userId: "" }); 
         navigate('/'); 
+      } else { 
+        toast.error(response.data.message); 
       } 
     } catch (error) { 
       console.log("Login error:", error?.response?.data?.message); // Add this log
       toast.error(error?.response?.data?.message); 
     } 
   } 
- 
+
   return ( 
     <div className='mt-5'> 
       <div className='bg-white w-full max-w-md rounded overflow-hidden p-4 mx-auto'> 
@@ -83,5 +84,5 @@ const CheckPasswordPage = () => {
     </div> 
   ) 
 } 
- 
+
 export default CheckPasswordPage;
