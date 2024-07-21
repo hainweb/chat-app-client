@@ -29,7 +29,7 @@ const CheckPasswordPage = () => {
     e.preventDefault(); 
     e.stopPropagation(); 
  
-    const URL = '${process.env.REACT_APP_BACKEND_URL}/api/password'; 
+    const URL = '${process.env.REACT_APP_BACKEND_URL}/api/password' 
  
     try { 
       const response = await axios.post(URL, { 
@@ -40,13 +40,21 @@ const CheckPasswordPage = () => {
       toast.success(response.data.message); 
  
       if (response.data.success) { 
+        console.log('Login successful, response:', response.data);
+        
+        // Set token in Redux store and localStorage
         dispatch(setToken(response?.data?.token)); 
         localStorage.setItem('token', response?.data?.token); 
+        
+        // Clear the form data
         setData({ password: "", userId: "" }); 
-        navigate('/'); 
+        
+        // Navigate to the home page
+        navigate('/home'); 
       } 
     } catch (error) { 
       toast.error(error?.response?.data?.message); 
+      console.error('Login error:', error?.response?.data);
     } 
   }; 
  
